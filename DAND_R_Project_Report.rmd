@@ -59,7 +59,8 @@ I also removed X variable becuase it is just count of rows.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Create_class_variable}
 # Remove X variable
-data <- data[2:13]
+# data <- data[2:13]
+data$X <- NULL
 # Create class variable to have quality data as factored
 data$score <- as.factor(data$quality)
 ```
@@ -108,15 +109,18 @@ Residual.sugar and alcohol histograms are positively skewed but many histograms 
 p1 <- qplot(volatile.acidity,
             data=data, 
             geom="histogram", 
-            xlab = "volatile.acidity(g/dm^3)")+ 
+            xlab = "volatile.acidity(g/dm^3)",
+            color = I("darkgoldenrod1"))+ 
   ggtitle("Volatile acidity distribution") +
   scale_x_log10() +
   scale_x_continuous(limits = c(0, 1.0), 
                      breaks = seq(0.1, 1.0, 0.1))
+
 p2 <- qplot(citric.acid,
             data=data, 
             geom="histogram", 
-            xlab = "citric.acid(g/dm^3)") +
+            xlab = "citric.acid(g/dm^3)",
+            color = I("chartreuse4")) +
   ggtitle("Citric acid distribution") +
   scale_x_log10() +
   scale_x_continuous(limits = c(0, 1.0), 
@@ -124,7 +128,8 @@ p2 <- qplot(citric.acid,
 p3 <- qplot(chlorides,
             data=data, 
             geom="histogram", 
-            xlab = "chlorides(g/dm^3)") +
+            xlab = "chlorides(g/dm^3)",
+            color = I("brown4")) +
   ggtitle("Chlorides distribution") +
   scale_x_log10()
 
@@ -142,6 +147,30 @@ Each wine has only a small amount of those chemicals.
 summary(data$volatile.acidity)
 summary(data$citric.acid)
 summary(data$chlorides)
+```
+```{r}
+p1 <- ggplot(data, aes(y = volatile.acidity, x = 1)) +
+  geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = volatile.acidity), alpha = 0.05) +
+  labs(y = 'Volatile Acidity(g/dm^3)', x = '',
+          title = "Volatile acidity distribution") +
+  coord_flip()
+
+p2 <- ggplot(data, aes(y = citric.acid, x = 1)) +
+  geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = citric.acid), alpha = 0.05) +
+  labs(y = 'citric.acid(g/dm^3)', x = '',
+          title = "Citric.acid distribution") +
+  coord_flip()
+
+p3 <- ggplot(data, aes(y = chlorides, x = 1)) +
+  geom_boxplot(color = 'blue') +
+  geom_jitter(aes(x = 1, y = chlorides), alpha = 0.05) +
+  labs(y = 'chlorides(g/dm^3)', x = '',
+          title = "Chlorides distribution") +
+  coord_flip()
+
+grid.arrange(p1,p2,p3, ncol = 1)
 ```
 
 Even outliers are very small so it might not affect the quality score much even if they give a flavor.
@@ -196,16 +225,18 @@ The maximum value is not very far from the minimum value.
 p1 <- qplot(total.sulfur.dioxide, 
             data = subset(data, 
                           total.sulfur.dioxide < 300),
+            color = I("brown1"),
             geom="histogram",
             xlab = "total.sulfur.dioxide(mg/dm^3)") +
   ggtitle("Total.sulfur.dioxide distribution")
 
 p2 <- qplot(free.sulfur.dioxide, 
             data = subset(data, 
-                          free.sulfur.dioxide < 300), 
+                          free.sulfur.dioxide < 100),
+            color = I("darkmagenta"),
             geom="histogram",
             xlab = "free.sulfur.dioxide(mg/dm^3)") +
-  ggtitle("Free.sulfur.dioxide distribution")
+  ggtitle("free.sulfur.dioxide distribution")
 
 grid.arrange(p1,p2,ncol=1)
 ```
@@ -222,12 +253,10 @@ It shows that free form of SO2 and total(free & bound) form of SO2 are considere
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plot5}
 # Quality of Wines
-qplot(quality,
-      data=data, 
-      geom="histogram") +
-  scale_x_continuous(limits = c(0, 10), 
-                     breaks = seq(0, 10, 1)) +
-  ggtitle("Quality 0(bad)-10(very excellent)")
+ggplot(aes(x = as.factor(quality)), data = data)+
+       geom_bar()+
+       xlab("Wine Quality rating") + ylab("Count") +
+       ggtitle("Bar of Wine Quality")
 ```
 
 Each expert graded the wine quality between 0 (very bad) and 10 (very excellent) [Cortez et al., 2009] and no wines received 0, 1, 2, 10 scores.
@@ -355,26 +384,28 @@ There is a clear picture that wines with a higher quality rating relatively have
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plot3}
 #  Visualize alcohol on a frequency plot and color it by quality
-p1 <- ggplot(data = data,
-             aes(alcohol, 
-                 color=score, 
+p1 <- ggplot(data= data,
+             aes(alcohol,
                  fill=score, 
                  group=score)) + 
-       geom_density() +
-       ggtitle("Density histogram of alcohol")+
-       xlab("Alcohol(%)") +
-       ylab(" ")
+  geom_density() +
+  scale_fill_brewer(type='seq')+ 
+  ggtitle("Density histogram of alcohol")+
+  xlab("Alcohol(%)") +
+  ylab(" ")
 
 #  Visualize density on a frequency plot and color it by quality
-p2 <- ggplot(data = subset(data, density < 1.01),
+p2 <- ggplot(data= subset(data, 
+                          density < 1.01),
              aes(density, 
                  color=score, 
                  fill=score, 
                  group=score)) + 
-       geom_density() +
-       ggtitle("Density histogram of wine density")+
-       xlab("Density (g/cm^3)") +
-       ylab(" ")
+  geom_density() +
+  scale_fill_brewer(type='seq')+ 
+  ggtitle("Density histogram of wine density")+
+  xlab("Density (g/cm^3)") +
+  ylab(" ")
 
 grid.arrange(p1, p2, ncol = 1)
 ```
@@ -571,6 +602,7 @@ ggplot(aes(x = total.sulfur.dioxide),
   scale_fill_brewer(palette="Spectral", 
                     direction = -1) +
   ggtitle("Count by total.sulfur.dioxide and residual.sugar")
+
 ```
 
 It is easy to find less sweeter wines in every score level, 
@@ -630,26 +662,28 @@ It is interesting because there are relatively less wines containing mean or med
 ### Plot Two
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Plot_Two}
 #  Visualize alcohol on a frequency plot and color it by quality
-p1 <- ggplot(data = data,
-             aes(alcohol, 
-                 color=score, 
+p1 <- ggplot(data= data,
+             aes(alcohol,
                  fill=score, 
                  group=score)) + 
-       geom_density() +
-       ggtitle("Density histogram of alcohol")+
-       xlab("alcohol(%)") +
-       ylab(" ")
+  geom_density() +
+  scale_fill_brewer(type='seq')+ 
+  ggtitle("Density histogram of alcohol")+
+  xlab("Alcohol(%)") +
+  ylab(" ")
 
 #  Visualize density on a frequency plot and color it by quality
-p2 <- ggplot(data = subset(data, density < 1.01),
+p2 <- ggplot(data= subset(data, 
+                          density < 1.01),
              aes(density, 
                  color=score, 
                  fill=score, 
                  group=score)) + 
-       geom_density() +
-       ggtitle("Density histogram of wine density")+
-       xlab("density (g/cm^3)") +
-       ylab(" ")
+  geom_density() +
+  scale_fill_brewer(type='seq')+ 
+  ggtitle("Density histogram of wine density")+
+  xlab("Density (g/cm^3)") +
+  ylab(" ")
 
 grid.arrange(p1, p2, ncol = 1)
 ```
